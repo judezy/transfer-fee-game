@@ -3,12 +3,32 @@ const baseTransfers = [
   { name: "Kylian Mbappé", from: "Monaco", to: "PSG", year: 2018, fee: 180000000, currency: "EUR", theme: "psg" },
   { name: "Jack Grealish", from: "Aston Villa", to: "Manchester City", year: 2021, fee: 100000000, currency: "GBP", theme: "mancity" },
   { name: "Declan Rice", from: "West Ham", to: "Arsenal", year: 2023, fee: 105000000, currency: "GBP", theme: "arsenal" },
-  { name: "Erling Haaland", from: "Dortmund", to: "Manchester City", year: 2022, fee: 60000000, currency: "EUR", theme: "mancity" }
+  { name: "Erling Haaland", from: "Dortmund", to: "Manchester City", year: 2022, fee: 60000000, currency: "EUR", theme: "mancity" },
+  { name: "Philippe Coutinho", from: "Liverpool", to: "Barcelona", year: 2018, fee: 135000000, currency: "EUR", theme: "barcelona" },
+  { name: "Ousmane Dembélé", from: "Dortmund", to: "Barcelona", year: 2017, fee: 135000000, currency: "EUR", theme: "barcelona" },
+  { name: "Paul Pogba", from: "Juventus", to: "Manchester United", year: 2016, fee: 89000000, currency: "GBP", theme: "manunited" },
+  { name: "Gareth Bale", from: "Tottenham", to: "Real Madrid", year: 2013, fee: 85300000, currency: "GBP", theme: "realmadrid" },
+  { name: "Cristiano Ronaldo", from: "Real Madrid", to: "Juventus", year: 2018, fee: 117000000, currency: "EUR", theme: "juventus" },
+  { name: "Jude Bellingham", from: "Dortmund", to: "Real Madrid", year: 2023, fee: 103000000, currency: "EUR", theme: "realmadrid" },
+  { name: "Moisés Caicedo", from: "Brighton", to: "Chelsea", year: 2023, fee: 115000000, currency: "GBP", theme: "chelsea" },
+  { name: "Enzo Fernández", from: "Benfica", to: "Chelsea", year: 2023, fee: 106800000, currency: "GBP", theme: "chelsea" },
+  { name: "Harry Maguire", from: "Leicester City", to: "Manchester United", year: 2019, fee: 80000000, currency: "GBP", theme: "manunited" },
+  { name: "Virgil van Dijk", from: "Southampton", to: "Liverpool", year: 2018, fee: 75000000, currency: "GBP", theme: "liverpool" },
+  { name: "Romelu Lukaku", from: "Inter Milan", to: "Chelsea", year: 2021, fee: 97500000, currency: "GBP", theme: "chelsea" },
+  { name: "Zinedine Zidane", from: "Juventus", to: "Real Madrid", year: 2001, fee: 77500000, currency: "EUR", theme: "realmadrid" },
+  { name: "Luis Suárez", from: "Liverpool", to: "Barcelona", year: 2014, fee: 82000000, currency: "EUR", theme: "barcelona" },
+  { name: "Kai Havertz", from: "Bayer Leverkusen", to: "Chelsea", year: 2020, fee: 80000000, currency: "EUR", theme: "chelsea" },
+  { name: "Jadon Sancho", from: "Dortmund", to: "Manchester United", year: 2021, fee: 73000000, currency: "GBP", theme: "manunited" },
+  { name: "Harry Kane", from: "Tottenham", to: "Bayern Munich", year: 2023, fee: 95000000, currency: "EUR", theme: "bayern" },
+  { name: "Kevin De Bruyne", from: "Wolfsburg", to: "Manchester City", year: 2015, fee: 55000000, currency: "GBP", theme: "mancity" }
 ];
 
 let score = 0;
 let currentIdx = 0;
 let nextIdx = 1;
+
+let recentIndices = [];
+const MAX_HISTORY_LIMIT = 20;
 
 function getFeeInEUR(player) {
     // converts from GBP to EURO so that we can compare 2 fees fairly
@@ -25,15 +45,44 @@ function getSymbol(currencyTag) {
     return currencyTag === "GBP" ? "£" : "€";
 }
 
-
 function initGame() {
     score = 0;
-    currentIdx = 0;
-    nextIdx = 1;
+    recentIndices = [];
+
+    currentIdx = getRandomPlayerIndex();
+    recentIndices.push(currentIdx);
+
+    setNextPlayer();
+
     console.clear();
     console.log("⚽ WELCOME TO THE TRANSFER HIGHER OR LOWER GAME ⚽");
     console.log("--------------------------------------------------");
     displayMatchup();
+}
+
+function getRandomPlayerIndex() {
+    return Math.floor(Math.random() * baseTransfers.length);
+}
+
+function setNextPlayer() {
+    let validPick = false;
+    let pick;
+
+    while (!validPick) {
+        pick = getRandomPlayerIndex();
+        
+        if (pick !== currentIdx && !recentIndices.includes(pick)) {
+            validPick = true;
+        }
+    }
+
+    // got a valid pick now, so update variables
+    nextIdx = pick;
+    recentIndices.push(nextIdx);
+
+    if (recentIndices.length > MAX_HISTORY_LIMIT) {
+        recentIndices.shift(); // remove the oldest entry (index 0)
+    }
 }
 
 function displayMatchup() {
@@ -69,7 +118,7 @@ function guess(choice) {
         console.log("--------------------------------------------------");
         
         currentIdx = nextIdx;
-        nextIdx = (nextIdx + 1) % baseTransfers.length; 
+        setNextPlayer();
         
         displayMatchup();
     } else {
