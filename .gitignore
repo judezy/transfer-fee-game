@@ -1,0 +1,21 @@
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs (if any in future)
+dist/
+build/
+out/
+
+# Dependencies (if added in future)
+node_modules/
+
+# Vercel
+.vercel
