@@ -1,0 +1,217 @@
+/* Base Page Settings */
+body {
+  margin: 0;
+  padding: 24px;
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Header UI Component */
+.game-header {
+  width: 100%;
+  max-width: 896px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 16px 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.main-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+}
+
+.sub-title {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.score-container {
+  text-align: right;
+}
+
+.score-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fbbf24;
+  font-family: monospace;
+}
+
+/* Arena Grid Layout */
+.arena-grid {
+  width: 100%;
+  max-width: 896px;
+  margin: 32px auto;
+  flex-1: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Make it side-by-side on desktop screens */
+@media (min-width: 768px) {
+  .arena-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Player Cards */
+.player-card {
+  background-color: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 276px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card-year {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  background-color: rgba(15, 23, 42, 0.4);
+  padding: 4px 12px;
+  border-radius: 6px;
+  width: fit-content;
+  font-family: monospace;
+}
+
+.player-name {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+}
+
+.player-teams {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Values and Pricing */
+.price-section {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 16px;
+}
+
+.price-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.price-value {
+  font-size: 24px;
+  font-weight: 900;
+  font-family: monospace;
+}
+
+.p1-color {
+  color: #10b981;
+}
+
+/* Interactive Controls Frame */
+.interactive-container {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-group {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 0;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-higher {
+  background-color: #059669;
+}
+
+.btn-higher:hover {
+  background-color: #10b981;
+}
+
+.btn-lower {
+  background-color: #475569;
+}
+
+.btn-lower:hover {
+  background-color: #64748b;
+}
+
+.reveal-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fbbf24;
+  font-family: monospace;
+  letter-spacing: -0.025em;
+}
+
+/* Engine Utility Classes */
+.hidden {
+  display: none !important;
+}
+
+.game-footer {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #475569;
+  font-family: monospace;
+}

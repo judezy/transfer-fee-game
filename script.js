@@ -28,7 +28,7 @@ let currentIdx = 0;
 let nextIdx = 1;
 
 let recentIndices = [];
-const MAX_HISTORY_LIMIT = 20;
+const MAX_HISTORY_LIMIT = Math.min(20, Math.floor(baseTransfers.length / 2)); // the maximum number of recent indices to track, to avoid repeats, is the lowest of either 20, or half the size of the list
 
 function getFeeInEUR(player) {
     // converts from GBP to EURO so that we can compare 2 fees fairly
@@ -55,9 +55,9 @@ function initGame() {
     setNextPlayer();
 
     console.clear();
-    console.log("⚽ WELCOME TO THE TRANSFER HIGHER OR LOWER GAME ⚽");
-    console.log("--------------------------------------------------");
-    displayMatchup();
+    console.log("Game Starting...");
+
+    updateUI();
 }
 
 function getRandomPlayerIndex() {
@@ -85,18 +85,25 @@ function setNextPlayer() {
     }
 }
 
-function displayMatchup() {
+function updateUI() {
     const p1 = baseTransfers[currentIdx];
     const p2 = baseTransfers[nextIdx];
 
-    console.log(`PLAYER 1: ${p1.name} (${p1.year})`);
-    console.log(`Transfer: ${p1.from} -> ${p1.to}`);
-    console.log(`Fee: ${getSymbol(p1.currency)}${p1.fee.toLocaleString()}`);
-    console.log("--------------------------------------------------");
-    console.log(`PLAYER 2: ${p2.name} (${p2.year})`);
-    console.log(`Transfer: ${p2.from} -> ${p2.to}`);
-    console.log("--------------------------------------------------");
-    console.log("👉 Type: guess('higher') or guess('lower')");
+    // replace player 1 details
+    document.getElementById('p1Name').innerText = p1.name;
+    document.getElementById('p1Year').innerText = p1.year;
+    document.getElementById('p1Teams').innerText = `${p1.from} to ${p1.to}`;
+    document.getElementById('p1Price').innerText = `${getSymbol(p1.currency)}${p1.fee.toLocaleString()}`;
+
+    // replace player 2 details
+    document.getElementById('p2Name').innerText = p2.name;
+    document.getElementById('p2Year').innerText = p2.year;
+    document.getElementById('p2Teams').innerText = `${p2.from} to ${p2.to}`;
+
+    // refresh
+    document.getElementById('uiScore').innerText = score;
+    document.getElementById('uiControls').classList.remove('hidden');
+    document.getElementById('p2Fee').classList.add('hidden');
 }
 
 function guess(choice) {
@@ -109,23 +116,24 @@ function guess(choice) {
     const isHigher = p2ValueInEUR >= p1ValueInEUR;
     const userWon = (choice === 'higher' && isHigher) || (choice === 'lower' && !isHigher);
 
-    console.log(`\nReveal: ${p2.name}'s actual fee was ${getSymbol(p2.currency)}${p2.fee.toLocaleString()}`);
-    console.log(`(Math check: €${p1ValueInEUR.toLocaleString()} vs €${p2ValueInEUR.toLocaleString()})`);
+    document.getElementById('uiControls').classList.add('hidden');
 
-    if (userWon) {
-        score++;
-        console.log(`✅ CORRECT! Current Streak: ${score}`);
-        console.log("--------------------------------------------------");
-        
-        currentIdx = nextIdx;
-        setNextPlayer();
-        
-        displayMatchup();
-    } else {
-        console.log(`❌ WRONG! Game Over.`);
-        console.log(`Final Score: ${score}`);
-        console.log("👉 Type initGame() to play again.");
-    }
+    const feeElement = document.getElementById('p2Fee');
+    feeElement.innerText = `${getSymbol(p2.currency)}${p2.fee.toLocaleString()}`;
+    feeElement.classList.remove('hidden');
+
+    setTimeout(() => {
+        if (userWon) {
+            score++;
+            currentIdx = nextIdx;
+            setNextPlayer();
+            updateUI();
+        } else {
+            alert(`Game Over! Final Score: ${score}`);
+            initGame();
+        }
+    }, 2000);
 }
+
 
 initGame();
