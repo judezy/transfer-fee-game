@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import os
 
 app = FastAPI()
@@ -13,33 +14,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_FILE = "game.db"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
     return conn
 
 def init_db():
+    if not DATABASE_URL:
+        print("WARNING: DATABASE_URL not set! Skipping DB initialization.")
+        return
+
     conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS players (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            from_club TEXT NOT NULL,
-            to_club TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            from_club VARCHAR(255) NOT NULL,
+            to_club VARCHAR(255) NOT NULL,
             year INTEGER NOT NULL,
-            fee INTEGER NOT NULL,
-            currency TEXT NOT NULL,
-            theme TEXT NOT NULL
+            fee BIGINT NOT NULL,
+            currency VARCHAR(10) NOT NULL,
+            theme VARCHAR(50) NOT NULL
         )
     """)
     
     cursor.execute("SELECT COUNT(*) FROM players")
-    if cursor.fetchone()[0] == 0:
-        print("Empty database detected! Adding initial players...")
+    count = cursor.fetchone()['count']
+    
+    if count == 0:
+        print("Empty database detected! Seeding initial players into Supabase...")
         initial_players = [
             ("Neymar Jr", "Barcelona", "PSG", 2017, 222000000, "EUR", "psg"),
             ("Kylian Mbappé", "Monaco", "PSG", 2018, 180000000, "EUR", "psg"),
@@ -67,15 +73,16 @@ def init_db():
         
         cursor.executemany("""
             INSERT INTO players (name, from_club, to_club, year, fee, currency, theme)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, initial_players)
         conn.commit()
+        print("Database seeded successfully!")
         
     conn.close()
 
 init_db()
 
-@app.get("/api/players/random") # to get a random player
+@app.get("/api/players/random")
 def get_random_players(count: int = Query(default=2, ge=1)):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -84,18 +91,18 @@ def get_random_players(count: int = Query(default=2, ge=1)):
         SELECT 
             id, 
             name, 
-            from_club as [from], 
-            to_club as [to], 
+            from_club as "from", 
+            to_club as "to", 
             year, 
             fee, 
             currency, 
             theme 
         FROM players 
         ORDER BY RANDOM() 
-        LIMIT ?
+        LIMIT %s
     """, (count,))
     
-    players = [dict(row) for row in cursor.fetchall()]
+    players = list(cursor.fetchall())
     conn.close()
     
     return players
