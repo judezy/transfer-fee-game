@@ -1,15 +1,25 @@
 body {
   margin: 0;
-  padding: 24px;
   background-color: #0f172a;
   color: #f8fafc;
   font-family: system-ui, sans-serif;
+}
+
+.game-view {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  padding: 24px;
   box-sizing: border-box;
   position: relative;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+.game-view.loaded {
+  opacity: 1;
+  visibility: visible;
 }
 
 .game-header {
@@ -68,14 +78,13 @@ body {
   width: 100%;
   max-width: 896px;
   margin: 32px auto;
-  flex-1: 1;
+  flex-grow: 1;
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-  align-items: center;
+  align-content: center;
 }
 
-/* Make it side-by-side on desktop screens */
 @media (min-width: 768px) {
   .arena-grid {
     grid-template-columns: 1fr 1fr;
@@ -203,7 +212,6 @@ body {
   letter-spacing: -0.025em;
 }
 
-/* Engine Utility Classes */
 .hidden {
   display: none !important;
 }
@@ -227,7 +235,7 @@ body {
   color: #0f172a;
   font-weight: 700;
   padding: 10px 16px;
-  border-radius: 12px; /* Matches your game button radius */
+  border-radius: 12px;
   border: none;
   cursor: pointer;
   font-size: 11px;
@@ -310,15 +318,28 @@ body {
   letter-spacing: 0.05em;
   transition: all 0.2s ease;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px; /* gap between logo and text */
+  gap: 8px;
 }
 
 .google-icon {
   width: 16px;
   height: 16px;
   display: block;
+}
+
+#loading-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
 }

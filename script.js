@@ -4,7 +4,10 @@ let nextPlayer = null;
 
 let recentIds = [];
 const MAX_HISTORY_LIMIT = 10;
-const API_URL = "/api/players/random";
+
+
+const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_URL = IS_LOCAL ? "http://127.0.0.1:8000/api/players/random" : "/api/players/random";
 
 async function fetchRandomPlayer(count=2) {
     try {
@@ -43,7 +46,7 @@ async function initGame() {
 
     const players = await fetchRandomPlayer(2);
 
-    if (players && players.length == 2) {
+    if (players && players.length === 2) {
         currentPlayer = players[0];
         nextPlayer = players[1];
 
@@ -51,11 +54,18 @@ async function initGame() {
         recentIds.push(nextPlayer.id);
 
         updateUI();
+
+        // Smoothly transition from loading state to game view
+        document.getElementById("loading-overlay").style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById("loading-overlay").style.display = "none";
+            document.getElementById("game-view").classList.add("loaded");
+        }, 300); // Gives the text a moment to fade out before revealing the game
+        
     } else {
         alert("Failed to fetch players. Please try again later.");
     }
 }
-
 
 async function setNextPlayer() {
     let validPick = false;
