@@ -4,7 +4,7 @@ let nextPlayer = null;
 
 let recentIds = [];
 const MAX_HISTORY_LIMIT = 10;
-const API_URL = "http://127.0.0.1:8000/api/players/random";
+const API_URL = "/api/players/random";
 
 async function fetchRandomPlayer(count=2) {
     try {
@@ -84,7 +84,7 @@ function updateUI() {
 
     const p1 = currentPlayer;
     const p2 = nextPlayer;
-    
+
     // replace player 1 details
     document.getElementById('p1Name').innerText = p1.name;
     document.getElementById('p1Year').innerText = p1.year;
