@@ -1,34 +1,24 @@
-const baseTransfers = [
-  { name: "Neymar Jr", from: "Barcelona", to: "PSG", year: 2017, fee: 222000000, currency: "EUR", theme: "psg" },
-  { name: "Kylian Mbappé", from: "Monaco", to: "PSG", year: 2018, fee: 180000000, currency: "EUR", theme: "psg" },
-  { name: "Jack Grealish", from: "Aston Villa", to: "Manchester City", year: 2021, fee: 100000000, currency: "GBP", theme: "mancity" },
-  { name: "Declan Rice", from: "West Ham", to: "Arsenal", year: 2023, fee: 105000000, currency: "GBP", theme: "arsenal" },
-  { name: "Erling Haaland", from: "Dortmund", to: "Manchester City", year: 2022, fee: 60000000, currency: "EUR", theme: "mancity" },
-  { name: "Philippe Coutinho", from: "Liverpool", to: "Barcelona", year: 2018, fee: 135000000, currency: "EUR", theme: "barcelona" },
-  { name: "Ousmane Dembélé", from: "Dortmund", to: "Barcelona", year: 2017, fee: 135000000, currency: "EUR", theme: "barcelona" },
-  { name: "Paul Pogba", from: "Juventus", to: "Manchester United", year: 2016, fee: 89000000, currency: "GBP", theme: "manunited" },
-  { name: "Gareth Bale", from: "Tottenham", to: "Real Madrid", year: 2013, fee: 85300000, currency: "GBP", theme: "realmadrid" },
-  { name: "Cristiano Ronaldo", from: "Real Madrid", to: "Juventus", year: 2018, fee: 117000000, currency: "EUR", theme: "juventus" },
-  { name: "Jude Bellingham", from: "Dortmund", to: "Real Madrid", year: 2023, fee: 103000000, currency: "EUR", theme: "realmadrid" },
-  { name: "Moisés Caicedo", from: "Brighton", to: "Chelsea", year: 2023, fee: 115000000, currency: "GBP", theme: "chelsea" },
-  { name: "Enzo Fernández", from: "Benfica", to: "Chelsea", year: 2023, fee: 106800000, currency: "GBP", theme: "chelsea" },
-  { name: "Harry Maguire", from: "Leicester City", to: "Manchester United", year: 2019, fee: 80000000, currency: "GBP", theme: "manunited" },
-  { name: "Virgil van Dijk", from: "Southampton", to: "Liverpool", year: 2018, fee: 75000000, currency: "GBP", theme: "liverpool" },
-  { name: "Romelu Lukaku", from: "Inter Milan", to: "Chelsea", year: 2021, fee: 97500000, currency: "GBP", theme: "chelsea" },
-  { name: "Zinedine Zidane", from: "Juventus", to: "Real Madrid", year: 2001, fee: 77500000, currency: "EUR", theme: "realmadrid" },
-  { name: "Luis Suárez", from: "Liverpool", to: "Barcelona", year: 2014, fee: 82000000, currency: "EUR", theme: "barcelona" },
-  { name: "Kai Havertz", from: "Bayer Leverkusen", to: "Chelsea", year: 2020, fee: 80000000, currency: "EUR", theme: "chelsea" },
-  { name: "Jadon Sancho", from: "Dortmund", to: "Manchester United", year: 2021, fee: 73000000, currency: "GBP", theme: "manunited" },
-  { name: "Harry Kane", from: "Tottenham", to: "Bayern Munich", year: 2023, fee: 95000000, currency: "EUR", theme: "bayern" },
-  { name: "Kevin De Bruyne", from: "Wolfsburg", to: "Manchester City", year: 2015, fee: 55000000, currency: "GBP", theme: "mancity" }
-];
-
 let score = 0;
-let currentIdx = 0;
-let nextIdx = 1;
+let currentPlayer = null;
+let nextPlayer = null;
 
-let recentIndices = [];
-const MAX_HISTORY_LIMIT = Math.min(20, Math.floor(baseTransfers.length / 2)); // the maximum number of recent indices to track, to avoid repeats, is the lowest of either 20, or half the size of the list
+let recentIds = [];
+const MAX_HISTORY_LIMIT = 10;
+const API_URL = "http://127.0.0.1:8000/api/players/random";
+
+async function fetchRandomPlayer(count=2) {
+    try {
+        const response = await fetch(`${API_URL}?count=${count}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching random player:", error);
+        return null;
+    }
+}
 
 function getFeeInEUR(player) {
     // converts from GBP to EURO so that we can compare 2 fees fairly
@@ -45,48 +35,56 @@ function getSymbol(currencyTag) {
     return currencyTag === "GBP" ? "£" : "€";
 }
 
-function initGame() {
+async function initGame() {
     score = 0;
-    recentIndices = [];
-
-    currentIdx = getRandomPlayerIndex();
-    recentIndices.push(currentIdx);
-
-    setNextPlayer();
+    recentIds = [];
+    
     console.log("Game Starting...");
 
-    updateUI();
+    const players = await fetchRandomPlayer(2);
+
+    if (players && players.length == 2) {
+        currentPlayer = players[0];
+        nextPlayer = players[1];
+
+        recentIds.push(currentPlayer.id);
+        recentIds.push(nextPlayer.id);
+
+        updateUI();
+    } else {
+        alert("Failed to fetch players. Please try again later.");
+    }
 }
 
-function getRandomPlayerIndex() {
-    return Math.floor(Math.random() * baseTransfers.length);
-}
 
-function setNextPlayer() {
+async function setNextPlayer() {
     let validPick = false;
     let pick;
 
     while (!validPick) {
-        pick = getRandomPlayerIndex();
-        
-        if (pick !== currentIdx && !recentIndices.includes(pick)) {
-            validPick = true;
+        pick = await fetchRandomPlayer(1);
+        if (pick && pick.length == 1) {
+            const playerPicked = pick[0];
+
+            if (playerPicked.id !== currentPlayer.id && !recentIds.includes(playerPicked.id)) {
+                nextPlayer = playerPicked;
+                recentIds.push(nextPlayer.id);
+                validPick = true;
+            }
         }
     }
 
-    // got a valid pick now, so update variables
-    nextIdx = pick;
-    recentIndices.push(nextIdx);
-
-    if (recentIndices.length > MAX_HISTORY_LIMIT) {
-        recentIndices.shift(); // remove the oldest entry (index 0)
+    if (recentIds.length > MAX_HISTORY_LIMIT) {
+        recentIds.shift(); // remove the oldest entry to maintain the size limit
     }
 }
 
 function updateUI() {
-    const p1 = baseTransfers[currentIdx];
-    const p2 = baseTransfers[nextIdx];
+    if (!currentPlayer || !nextPlayer) return;
 
+    const p1 = currentPlayer;
+    const p2 = nextPlayer;
+    
     // replace player 1 details
     document.getElementById('p1Name').innerText = p1.name;
     document.getElementById('p1Year').innerText = p1.year;
@@ -136,11 +134,10 @@ async function syncHighScoreToCloud(newScore) {
 }
 
 function guess(choice) {
-    const p1 = baseTransfers[currentIdx];
-    const p2 = baseTransfers[nextIdx];
+    if (!currentPlayer || !nextPlayer) return;
 
-    const p1ValueInEUR = getFeeInEUR(p1);
-    const p2ValueInEUR = getFeeInEUR(p2);
+    const p1ValueInEUR = getFeeInEUR(currentPlayer);
+    const p2ValueInEUR = getFeeInEUR(nextPlayer);
 
     const isHigher = p2ValueInEUR >= p1ValueInEUR;
     const userWon = (choice === 'higher' && isHigher) || (choice === 'lower' && !isHigher);
@@ -148,14 +145,14 @@ function guess(choice) {
     document.getElementById('uiControls').classList.add('hidden');
 
     const feeElement = document.getElementById('p2Fee');
-    feeElement.innerText = `${getSymbol(p2.currency)}${p2.fee.toLocaleString()}`;
+    feeElement.innerText = `${getSymbol(nextPlayer.currency)}${nextPlayer.fee.toLocaleString()}`;
     feeElement.classList.remove('hidden');
 
     setTimeout(async () => {
         if (userWon) {
             score++;
-            currentIdx = nextIdx;
-            setNextPlayer();
+            currentPlayer = nextPlayer;
+            await setNextPlayer();
             updateUI();
         } else {
             if (currentUser) {
@@ -163,7 +160,7 @@ function guess(choice) {
             }
 
             alert(`Game Over! Final Score: ${score}`);
-            initGame();
+            await initGame();
         }
     }, 2000);
 }
