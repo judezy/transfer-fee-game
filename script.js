@@ -53,8 +53,6 @@ function initGame() {
     recentIndices.push(currentIdx);
 
     setNextPlayer();
-
-    console.clear();
     console.log("Game Starting...");
 
     updateUI();
@@ -106,6 +104,37 @@ function updateUI() {
     document.getElementById('p2Fee').classList.add('hidden');
 }
 
+async function syncHighScoreToCloud(newScore) {
+    if (!currentUser) return;
+
+    if (newScore == 0) return;
+
+    const userDocRef = window.firestoreDoc(window.db, 'scores', currentUser.uid);
+
+    try {
+        const userDoc = await window.firestoreGetDoc(userDocRef);
+        let currentCloudHighScore = 0;
+
+        if (userDoc.exists()) {
+            currentCloudHighScore = userDoc.data().highScore || 0;
+        }
+
+        if (newScore > currentCloudHighScore) {
+            await window.firestoreSetDoc(userDocRef, {
+                uid: currentUser.uid,
+                username: currentUser.displayName,
+                photoURL: currentUser.photoURL,
+                highScore: newScore,
+                updatedAt: new Date()
+            }, {merge: true});
+
+            console.log("New high score synced:", newScore);
+        }
+    } catch (error) {
+        console.error("Error syncing high score:", error);
+    }
+}
+
 function guess(choice) {
     const p1 = baseTransfers[currentIdx];
     const p2 = baseTransfers[nextIdx];
@@ -122,18 +151,68 @@ function guess(choice) {
     feeElement.innerText = `${getSymbol(p2.currency)}${p2.fee.toLocaleString()}`;
     feeElement.classList.remove('hidden');
 
-    setTimeout(() => {
+    setTimeout(async () => {
         if (userWon) {
             score++;
             currentIdx = nextIdx;
             setNextPlayer();
             updateUI();
         } else {
+            if (currentUser) {
+                await syncHighScoreToCloud(score);
+            }
+
             alert(`Game Over! Final Score: ${score}`);
             initGame();
         }
     }, 2000);
 }
 
+let currentUser = null;
+
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const userInfo = document.getElementById('user-info');
+const userAvatar = document.getElementById('user-avatar');
+const userName = document.getElementById('user-name');
+
+if (loginBtn) {
+  loginBtn.addEventListener('click', async () => {
+    try {
+      const result = await window.signInWithPopup(window.auth, window.provider);
+      console.log("Successfully logged in:", result.user.displayName);
+    } catch (error) {
+      console.error("Auth Error:", error);
+      alert("Sign-in failed.");
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await window.signOut(window.auth);
+      console.log("Successfully signed out.");
+    } catch (error) {
+      console.error("Sign-out Error:", error);
+    }
+  });
+}
+
+if (window.onAuthStateChanged) {
+  window.onAuthStateChanged(window.auth, (user) => {
+    if (user) {
+      currentUser = user;
+      if (userName) userName.textContent = user.displayName;
+      if (userAvatar) userAvatar.src = user.photoURL || 'https://via.placeholder.com/150';
+      if (loginBtn) loginBtn.style.display = 'none';
+      if (userInfo) userInfo.style.display = 'flex';
+    } else {
+      currentUser = null;
+      if (loginBtn) loginBtn.style.display = 'flex';
+      if (userInfo) userInfo.style.display = 'none';
+    }
+  });
+}
 
 initGame();
