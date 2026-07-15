@@ -5,9 +5,25 @@ let nextPlayer = null;
 let recentIds = [];
 const MAX_HISTORY_LIMIT = 10;
 
-
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_URL = IS_LOCAL ? "http://127.0.0.1:8000/api/players/random" : "/api/players/random";
+
+const sounds = {
+    correct: new Audio('assets/sounds/correct.mp3'),
+    wrong: new Audio('assets/sounds/wrong.mp3'),
+
+    playCorrect() {
+        this.correct.currentTime = 0;
+        this.correct.volume = 0.2;
+        this.correct.play().catch(error => console.error("Error playing `correct` sound:", error));
+    },
+
+    playWrong() {
+        this.wrong.currentTime = 0;
+        this.wrong.volume = 0.2;
+        this.wrong.play().catch(error => console.error("Error playing `wrong` sound:", error));
+    }
+};
 
 function createCardHTML(player, isRevealed=False) {
     const symbol = getSymbol(player.currency);
@@ -198,6 +214,14 @@ function guess(choice) {
 
     const card2 = document.getElementById('card2');
     if (!card2) return;
+
+    if (userWon) {
+        card2.classList.add('flash-correct');
+        sounds.playCorrect();
+    } else {
+        card2.classList.add('flash-wrong');
+        sounds.playWrong();
+    }
 
     const uiControls = card2.querySelector('.btn-group');
     const feeElement = card2.querySelector('.reveal-value');
