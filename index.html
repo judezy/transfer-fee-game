@@ -40,40 +40,41 @@
     </div>
   </header>
 
-  <main class="arena-grid">
-    
-    <div class="player-card">
-      <div id="p1Year" class="card-year">2017</div>
+  <main class="arena-viewport">
+    <div id="arenaBelt" class="arena-belt">
       
-      <div class="player-info">
-        <h2 id="p1Name" class="player-name">Neymar Jr</h2>
-        <p id="p1Teams" class="player-teams">Barcelona to PSG</p>
-      </div>
-
-      <div class="price-section">
-        <span class="price-label">Market Fee</span>
-        <div id="p1Price" class="price-value p1-color">€222,000,000</div>
-      </div>
-    </div>
-
-    <div class="player-card">
-      <div id="p2Year" class="card-year">2018</div>
-      
-      <div class="player-info">
-        <h2 id="p2Name" class="player-name">Kylian Mbappé</h2>
-        <p id="p2Teams" class="player-teams">Monaco to PSG</p>
-      </div>
-
-      <div class="interactive-container">
-        <div id="uiControls" class="btn-group">
-          <button onclick="guess('higher')" class="btn btn-higher">Higher</button>
-          <button onclick="guess('lower')" class="btn btn-lower">Lower</button>
+      <!-- card 1 -->
+      <div class="player-card" id="card1">
+        <div id="p1Year" class="card-year">2017</div>
+        <div class="player-info">
+          <h2 id="p1Name" class="player-name">Neymar Jr</h2>
+          <p id="p1Teams" class="player-teams">Barcelona to PSG</p>
         </div>
-        
-        <div id="p2Fee" class="reveal-value hidden">€180,000,000</div>
+        <div class="price-section">
+          <span class="price-label">Market Fee</span>
+          <div id="p1Price" class="price-value p1-color">€222,000,000</div>
+        </div>
       </div>
-    </div>
 
+      <!-- card 2 -->
+      <div class="player-card" id="card2">
+        <div id="p2Year" class="card-year">2018</div>
+        <div class="player-info">
+          <h2 id="p2Name" class="player-name">Kylian Mbappé</h2>
+          <p id="p2Teams" class="player-teams">Monaco to PSG</p>
+        </div>
+        <div class="price-section">
+          <div class="interactive-container">
+            <div id="uiControls" class="btn-group">
+              <button onclick="guess('higher')" class="btn btn-higher">Higher</button>
+              <button onclick="guess('lower')" class="btn btn-lower">Lower</button>
+            </div>
+            <div id="p2Fee" class="reveal-value hidden">€180,000,000</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <footer class="game-footer">

@@ -9,6 +9,42 @@ const MAX_HISTORY_LIMIT = 10;
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_URL = IS_LOCAL ? "http://127.0.0.1:8000/api/players/random" : "/api/players/random";
 
+function createCardHTML(player, isRevealed=False) {
+    const symbol = getSymbol(player.currency);
+    const formattedFee = `${symbol}${player.fee.toLocaleString()}`;
+
+    if (isRevealed) {
+        return `
+        <div class="card-year">${player.year}</div>
+            <div class="player-info">
+                <h2 class="player-name">${player.name}</h2>
+                <p class="player-teams">${player.from} to ${player.to}</p>
+            </div>
+            <div class="price-section">
+                <span class="price-label">Market Fee</span>
+                <div class="price-value p1-color">${formattedFee}</div>
+            </div>
+        `;
+    } else {
+        return `
+        <div class="card-year">${player.year}</div>
+            <div class="player-info">
+                <h2 class="player-name">${player.name}</h2>
+                <p class="player-teams">${player.from} to ${player.to}</p>
+            </div>
+            <div class="price-section">
+                <div class="interactive-container">
+                    <div class="btn-group" id="uiControls">
+                        <button onclick="guess('higher')" class="btn btn-higher">Higher</button>
+                        <button onclick="guess('lower')" class="btn btn-lower">Lower</button>
+                    </div>
+                    <div id="p2Fee" class="reveal-value p1-color hidden"></div>
+                </div>
+            </div>  
+        `;
+    }
+}
+
 async function fetchRandomPlayer(count=2) {
     try {
         const response = await fetch(`${API_URL}?count=${count}`);
@@ -53,14 +89,22 @@ async function initGame() {
         recentIds.push(currentPlayer.id);
         recentIds.push(nextPlayer.id);
 
-        updateUI();
+        const belt = document.getElementById("arenaBelt");
+        belt.style.transition = "none";
+        belt.style.transform = "translateX(0)";
 
-        // Smoothly transition from loading state to game view
-        document.getElementById("loading-overlay").style.opacity = "0";
+        belt.innerHTML = `
+        <div class="player-card" id="card1">${createCardHTML(currentPlayer, true)}</div>
+        <div class="player-card" id="card2">${createCardHTML(nextPlayer, false)}</div>
+        `;
+
+        document.getElementById('uiScore').innerText = score;
+
+        document.getElementById('loading-overlay').style.opacity = "0";
         setTimeout(() => {
-            document.getElementById("loading-overlay").style.display = "none";
-            document.getElementById("game-view").classList.add("loaded");
-        }, 300); // Gives the text a moment to fade out before revealing the game
+            document.getElementById('loading-overlay').style.display = "none";
+            document.getElementById('game-view').classList.add("loaded");
+        }, 300);
         
     } else {
         alert("Failed to fetch players. Please try again later.");
@@ -152,18 +196,47 @@ function guess(choice) {
     const isHigher = p2ValueInEUR >= p1ValueInEUR;
     const userWon = (choice === 'higher' && isHigher) || (choice === 'lower' && !isHigher);
 
-    document.getElementById('uiControls').classList.add('hidden');
+    const card2 = document.getElementById('card2');
+    if (!card2) return;
 
-    const feeElement = document.getElementById('p2Fee');
-    feeElement.innerText = `${getSymbol(nextPlayer.currency)}${nextPlayer.fee.toLocaleString()}`;
-    feeElement.classList.remove('hidden');
+    const uiControls = card2.querySelector('.btn-group');
+    const feeElement = card2.querySelector('.reveal-value');
+
+    if (uiControls) uiControls.classList.add('hidden');
+    if (feeElement) {
+        feeElement.innerText = `${getSymbol(nextPlayer.currency)}${nextPlayer.fee.toLocaleString()}`;
+        feeElement.classList.remove('hidden');
+    }
 
     setTimeout(async () => {
         if (userWon) {
             score++;
+            document.getElementById('uiScore').innerText = score;
+
             currentPlayer = nextPlayer;
             await setNextPlayer();
-            updateUI();
+
+            const belt = document.getElementById("arenaBelt");
+
+            const nextCard = document.createElement('div');
+            nextCard.className = "player-card";
+            nextCard.innerHTML = createCardHTML(nextPlayer, false);
+            belt.appendChild(nextCard);
+
+            const shiftAmount = nextCard.offsetWidth + 24;
+            belt.style.transition = "transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)";
+            belt.style.transform = `translateX(-${shiftAmount}px)`;
+
+            setTimeout(() => {
+                belt.style.transition = "none";
+                belt.removeChild(belt.firstElementChild);
+                belt.style.transform = "translateX(0)";
+
+                const cards = belt.querySelectorAll('.player-card');
+                if (cards[0]) cards[0].id = "card1";
+                if (cards[1]) cards[1].id = "card2";
+            }, 600);
+
         } else {
             if (currentUser) {
                 await syncHighScoreToCloud(score);
@@ -172,7 +245,7 @@ function guess(choice) {
             alert(`Game Over! Final Score: ${score}`);
             await initGame();
         }
-    }, 2000);
+    }, 350);
 }
 
 let currentUser = null;

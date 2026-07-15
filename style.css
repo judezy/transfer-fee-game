@@ -74,6 +74,44 @@ body {
 }
 
 /* Arena Grid Layout */
+.arena-viewport {
+  width: 100%;
+  max-width: 896px;
+  margin: 32px auto;
+  overflow: hidden;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.arena-belt {
+  display: flex;
+  width: 100%;
+  gap: 24px;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.player-card {
+  flex: 1 0 calc(50% - 12px); /* each card uses half the viewport width minus half the gap */
+  background-color: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 276px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+/* mobile */
+@media (max-width: 767px) {
+  .player-card {
+    flex: 1 0 100%;
+  }
+}
+
 .arena-grid {
   width: 100%;
   max-width: 896px;
@@ -134,6 +172,11 @@ body {
 .price-section {
   border-top: 1px solid rgba(148, 163, 184, 0.2);
   padding-top: 16px;
+
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .price-label {
@@ -207,7 +250,6 @@ body {
 .reveal-value {
   font-size: 24px;
   font-weight: 900;
-  color: #fbbf24;
   font-family: monospace;
   letter-spacing: -0.025em;
 }
@@ -342,4 +384,44 @@ body {
   letter-spacing: 0.05em;
   transition: opacity 0.3s ease;
   z-index: 9999;
+}
+
+/* card sliding from player 2 position to player 1 position */
+
+/* desktop */
+@media (min-width: 768px) {
+  .arena-grid .player-card {
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+  }
+
+  /* slide player 1 off the screen */
+  .arena-grid.slide-active .player-card:first-child {
+    transform: translateX(-110%);
+    opacity: 0;
+  }
+
+  /* slide player 2 to player 1 position */
+  .arena-grid.slide-active .player-card:last-child {
+    transform: translateX(calc(-100% - 16px)); /* the gap between the cards is 16px */
+  }
+}
+
+/* mobile */
+@media (max-width: 767px) {
+  .arena-grid .player-card {
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+  }
+
+  .arena-grid.slide-active .player-card:first-child {
+    transform: translateY(-110%); /* push up, rather than across */
+    opacity: 0;
+  }
+
+  .arena-grid.slide-active .player-card:last-child {
+    transform: translateY(calc(-100% - 16px));
+  }
+}
+
+.arena-grid .player-card.no-transition {
+  transition: none !important;
 }
